@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WeatherSphere</title>
+
+
+<style>
+ #particles-js {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* stay behind UI */
+  pointer-events: none;
+  background: transparent;
+}
+
+</style>
+ 
+
+
+  <!-- Tailwind Dark Mode Config -->
+  <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class'
+  };
+</script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<link rel="icon" href="favicon.ico" />
+<meta name="description" content="WeatherSphere - Your smart weather companion">
+
+
+<style>
+  body.sunny {
+    background: linear-gradient(to top, #fceabb, #f8b500);
+    background-size: cover;
+    transition: background 1s ease-in-out;
+  }
+
+  body.cloudy {
+    background: linear-gradient(to right, #bdc3c7, #2c3e50);
+    background-size: cover;
+  }
+
+  body.rainy {
+    background: linear-gradient(to bottom, #4b79a1, #283e51);
+    background-size: cover;
+  }
+
+  body.snowy {
+    background: linear-gradient(to bottom, #83a4d4, #b6fbff);
+    background-size: cover;
+  }
+
+  body.stormy {
+    background: linear-gradient(to bottom, #373b44, #4286f4);
+    background-size: cover;
+  }
+
+
+#weather-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1; /* stays in background */
+  background-repeat: repeat;
+  background-size: cover;
+}
+
+/* 🌧 Rain animation */
+.rain {
+  background-image: url('https://images.pexels.com/photos/76969/cold-front-warm-front-hurricane-felix-76969.jpeg');
+  animation: rainMove 0.5s linear infinite;
+}
+@keyframes rainMove {
+  from { background-position: 0 0; }
+  to { background-position: 0 100%; }
+}
+
+/* ❄ Snow animation */
+.snow {
+  background-image: url('https://images.pexels.com/photos/76969/cold-front-warm-front-hurricane-felix-76969.jpeg');
+  animation: snowMove 3s linear infinite;
+}
+@keyframes snowMove {
+  from { background-position: 0 0; }
+  to { background-position: 0 100%; }
+}
+
+/* ☀ Sunny glow */
+.sunny {
+  background: radial-gradient(circle at top right, rgba(255, 255, 0, 0.4), transparent 70%);
+}
+
+/* ☁ Clouds */
+.cloudy {
+  background-image: url('https://images.pexels.com/photos/76969/cold-front-warm-front-hurricane-felix-76969.jpeg');
+  animation: cloudsMove 60s linear infinite;
+}
+@keyframes cloudsMove {
+  from { background-position: 0 0; }
+  to { background-position: 100% 0; }
+}
+
+/* 🌩 Storm (dark clouds + occasional flash) */
+.stormy {
+  background-image: url('https://images.pexels.com/photos/76969/cold-front-warm-front-hurricane-felix-76969.jpeg');
+  animation: cloudsMove 40s linear infinite;
+}
+.stormy.flash {
+  animation: cloudsMove 40s linear infinite, lightningFlash 2s infinite;
+}
+@keyframes lightningFlash {
+  0%, 95%, 100% { filter: brightness(1); }
+  96%, 98% { filter: brightness(3); }
+}
+
+
+
+</style>
+
+
+</head>
+<body class="bg-gradient-to-r from-blue-500 to-blue-300 dark:from-gray-900 dark:to-gray-800 text-white min-h-screen p-6 transition-colors duration-300">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-4xl font-bold mb-6 text-center">WeatherSphere</h1>
+
+<!-- Weather animation background -->
+<div id="weather-animation"></div>
+
+    <!-- Search Input -->
+    <div class="flex items-center gap-2 mb-4">
+      <input id="location-input" class="flex-grow p-3 rounded-l-lg text-black" placeholder="Enter city..." />
+      <button id="search-btn"  class="bg-white/30 dark:bg-white/10 p-3 rounded-r-lg"><i class="fas fa-search"></i></button>
+      <button id="location-btn" class="bg-white/30 dark:bg-white/10 p-3 rounded-lg" title="Use current location"><i class="fas fa-location-arrow"></i></button>
+    </div>
+
+    <!-- Toggle Units + Dark Mode -->
+    <div class="flex justify-between items-center mb-4">
+      <div class="flex rounded-full overflow-hidden bg-white/20 dark:bg-white/10">
+        <button id="celsius-btn" class="px-4 py-2 active">°C</button>
+        <button id="fahrenheit-btn" class="px-4 py-2">°F</button>
+      </div>
+      <button id="dark-toggle" class="bg-white/20 dark:bg-white/10 px-4 py-2 rounded-full">🌓 Toggle Dark Mode</button>
+    </div>
+
+    <!-- Main Weather Card -->
+    <div class="weather-card p-6 mb-6 rounded-2xl bg-gradient-to-br from-blue-400/30 to-blue-600/30 dark:from-gray-700/40 dark:to-gray-900/40 backdrop-blur-md shadow-lg border border-white/20">
+  <div class="flex justify-between items-center">
+    <div>
+      <h2 id="location" class="text-2xl font-bold">Loading...</h2>
+      <p id="date" class="text-white/80">--/--/----</p>
+      <p id="condition" class="text-xl mt-1">--</p>
+    </div>
+    <div class="text-center">
+      <div id="weather-icon" class="mb-2"><i class="fas fa-sun text-4xl"></i></div>
+      <div id="temperature" class="text-4xl font-bold">--°</div>
+    </div>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+    <div class="text-center bg-white/10 dark:bg-white/5 p-3 rounded-lg">
+      <p>Humidity</p>
+      <p id="humidity" class="text-xl font-bold">--%</p>
+    </div>
+    <div class="text-center bg-white/10 dark:bg-white/5 p-3 rounded-lg">
+      <p>Wind</p>
+      <p id="wind" class="text-xl font-bold">-- km/h</p>
+    </div>
+    <div class="text-center bg-white/10 dark:bg-white/5 p-3 rounded-lg">
+      <p>Pressure</p>
+      <p id="pressure" class="text-xl font-bold">-- hPa</p>
+    </div>
+    <div class="text-center bg-white/10 dark:bg-white/5 p-3 rounded-lg">
+      <p>Feels Like</p>
+      <p id="feels-like" class="text-xl font-bold">--°</p>
+    </div>
+  </div>
+</div>
+
+    <!-- Weather Alerts -->
+    <div id="alert-box" class="weather-card p-4 rounded-2xl bg-red-500/20 text-red-100 mb-6 hidden">
+      <h2 class="text-xl font-bold mb-1">⚠️ Weather Alert</h2>
+      <p id="alert-title" class="font-semibold"></p>
+      <p id="alert-desc" class="text-sm"></p>
+    </div>
+
+    <!-- Favorites -->
+   
+    
+
+    <!-- Hourly Forecast -->
+    <div class="weather-card p-4 rounded-2xl bg-white/10 dark:bg-gray-800/50 backdrop-blur mb-6 transition-colors duration-300">
+
+      <h2 class="text-xl font-bold mb-2">Hourly Forecast</h2>
+      <div id="hourly-container" class="flex gap-2 overflow-x-auto"></div>
+    </div>
+
+<!-- 10-Day Forecast -->
+<h2 class="text-2xl font-bold mb-3">5-Day Forecast</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-8" id="forecast-container"></div>
+
+
+    <!-- More Info -->
+   <!-- Real Feel, Sunset, Pressure, UV Index, Air Quality -->
+<div id="extra-info" class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 text-center text-white">
+  <div class="bg-white/10 dark:bg-white/5 p-4 rounded-xl">
+    <p class="text-sm">Real Feel</p>
+    <p id="real-feel" class="text-lg font-bold">--°</p>
+  </div>
+  <div class="bg-white/10 dark:bg-white/5 p-4 rounded-xl">
+    <p class="text-sm">Sunset</p>
+    <p id="sunset" class="text-lg font-bold">--:--</p>
+  </div>
+  <div class="bg-white/10 dark:bg-white/5 p-4 rounded-xl">
+  <p class="text-sm">Sunrise</p>
+  <p id="sunrise" class="text-lg font-bold">--:--</p>
+</div>
+  <div class="bg-white/10 dark:bg-white/5 p-4 rounded-xl">
+    <p class="text-sm">Pressure</p>
+    <p id="pressure2" class="text-lg font-bold">--- hPa</p>
+  </div>
+  <div class="bg-white/10 dark:bg-white/5 p-4 rounded-xl">
+    <p class="text-sm">UV Index</p>
+    <p id="uv-index" class="text-lg font-bold">--</p>
+  </div>
+  <div class="bg-white/10 dark:bg-white/5 p-4 rounded-xl">
+    <p class="text-sm">Air Quality</p>
+    <p id="aqi" class="text-lg font-bold">--</p>
+  </div>
+</div>
+
+<!-- Temperature Chart -->
+<div class="weather-card p-4 rounded-2xl bg-white/10 dark:bg-white/5 backdrop-blur mt-8 mb-6">
+  <h2 class="text-xl font-bold mb-2">Temperature Trend</h2>
+  <canvas id="temp-chart" height="100"></canvas>
+</div>
+
+
+ 
+
+  <script src="weather-enhanced.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  
+
+<div id="particles-js" style="position: fixed; width: 100%; height: 100%; z-index: -1;"></div>
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+
+</body>
+</html>
