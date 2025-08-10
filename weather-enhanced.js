@@ -17,6 +17,7 @@ const feelsLikeElement = document.getElementById('feels-like');
 const mapImage = document.getElementById('map-image');
 const hourlyContainer = document.getElementById('hourly-container');
 const forecastContainer = document.getElementById('forecast-container');
+
 const favoritesContainer = document.getElementById('favorites-container');
 
 
@@ -81,12 +82,19 @@ function loadParticlesForWeather(description) {
 
   if (desc.includes('snow')) type = 'snow';
   else if (desc.includes('rain') || desc.includes('drizzle')) type = 'rain';
+  else if (desc.includes('clear') || desc.includes('sun')) type = 'sunny';
+  else if (desc.includes('cloud')) type = 'cloudy';
   else type = 'clear';
 
-  if (document.getElementById('particles-js')) {
+  // Reset particles.js
+  if (window.pJSDom && window.pJSDom.length > 0) {
+    window.pJSDom[0].pJS.fn.vendors.destroypJS();
+    window.pJSDom = [];
+  }
+
   particlesJS("particles-js", particleConfigs[type]);
 }
-}
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem("darkMode");
@@ -236,6 +244,10 @@ function updateWeatherDisplay() {
   dateElement.textContent = new Date().toLocaleDateString();
   conditionElement.textContent = data.weather[0].description;
     setWeatherBackground(data.weather[0].description);
+    updateWeatherAnimation(data.weather[0].description);
+
+    
+
 
   updateWeatherIcon(data.weather[0].icon);
   humidityElement.textContent = `${data.main.humidity}%`;
@@ -283,6 +295,29 @@ function updateForecastDisplay(forecasts) {
   });
   updateTempChart(forecasts);
 }
+
+function updateWeatherAnimation(description) {
+  const animContainer = document.getElementById("weather-animation");
+  animContainer.className = ""; // reset any previous class
+
+  const desc = description.toLowerCase();
+
+  if (desc.includes("rain") || desc.includes("drizzle")) {
+    animContainer.classList.add("rain");
+  } else if (desc.includes("snow")) {
+    animContainer.classList.add("snow");
+  } else if (desc.includes("clear") || desc.includes("sun")) {
+    animContainer.classList.add("sunny");
+  } else if (desc.includes("storm") || desc.includes("thunder")) {
+    animContainer.classList.add("stormy", "flash");
+  } else if (desc.includes("cloud")) {
+    animContainer.classList.add("cloudy");
+  }
+}
+
+
+
+
 
 function updateHourlyDisplay(hourly) {
   hourlyContainer.innerHTML = '';
@@ -391,12 +426,19 @@ tempChart = new Chart(ctx, {
 
 function updateExtendedInfo(data) {
   document.getElementById('real-feel').textContent = `${Math.round(data.main.feels_like)}°`;
+
+  const sunrise = new Date(data.sys.sunrise * 1000);
+  document.getElementById('sunrise').textContent = sunrise.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
   const sunset = new Date(data.sys.sunset * 1000);
   document.getElementById('sunset').textContent = sunset.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
   document.getElementById('pressure2').textContent = `${data.main.pressure} hPa`;
+
   getUVIndex(data.coord.lat, data.coord.lon);
   getAQI(data.coord.lat, data.coord.lon);
 }
+
 
 async function getUVIndex(lat, lon) {
   try {
